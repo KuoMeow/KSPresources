@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>郭然有光｜郭老師的特教互動教室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/lxgw-wenkai-tc@5.3.0/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/lxgw-wenkai-tc@5.3.0/700.css">
+<style>
+  :root{
+    --ink:#1B2233;
+    --ink-deep:#12172400;
+    --cream:#FBF8F2;
+    --cream-dim:#F1ECE0;
+    --line:#E4DCC9;
+    --text:#2B2A26;
+    --text-soft:#6B6A63;
+
+    --amber:#E0A458;   /* 數學 */
+    --coral:#D8735F;   /* 國語 */
+    --teal:#4F86A0;    /* 學習策略 */
+    --lilac:#8B7EC8;   /* 社會技巧 */
+    --sage:#7C8F6E;    /* 未分類資源 */
+
+    --serif: 'LXGW WenKai TC', 'Noto Serif TC', serif;
+    --sans: 'Noto Sans TC', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; scroll-padding-top: calc(24px + env(safe-area-inset-top,0px));}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--text);
+    background:var(--cream);
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+  }
+
+  a{color:inherit;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    background:var(--ink);
+    overflow:hidden;
+    padding: 20vh 24px 14vh;
+    text-align:center;
+    color:#F4F1E8;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(340px 340px at 12% 18%, rgba(224,164,88,0.35), transparent 70%),
+      radial-gradient(300px 300px at 85% 22%, rgba(216,115,95,0.30), transparent 70%),
+      radial-gradient(360px 360px at 20% 85%, rgba(79,134,160,0.30), transparent 70%),
+      radial-gradient(320px 320px at 88% 82%, rgba(139,126,200,0.30), transparent 70%);
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce){ .hero::before{ animation:none; } }
+  @keyframes drift{
+    0%{ transform: translate(0,0) scale(1); }
+    100%{ transform: translate(-2%, 2%) scale(1.06); }
+  }
+  .hero-inner{ position:relative; z-index:1; max-width:640px; margin:0 auto; }
+  .eyebrow-mark{ font-size:1.6rem; opacity:.85; margin-bottom:.6em; }
+  .hero h1{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:clamp(2.8rem, 7.5vw, 4.6rem);
+    letter-spacing:.03em;
+    margin:0 0 .4em;
+  }
+  .hero .role{
+    font-family:var(--serif);
+    font-size:clamp(1.05rem, 2.6vw, 1.35rem);
+    color:#D9D3C2;
+    margin:0 0 1.4em;
+  }
+  .hero .tagline{
+    font-size:clamp(1rem, 2.2vw, 1.15rem);
+    line-height:1.9;
+    color:#B9C2D6;
+    max-width:26em;
+    margin:0 auto;
+  }
+
+  /* ---------- NAV / RESOURCE LIGHTS ---------- */
+  .lights{
+    max-width:920px;
+    margin:0 auto;
+    padding: 64px 24px 20px;
+  }
+  .lights-intro{
+    text-align:center;
+    color:var(--text-soft);
+    font-size:.98rem;
+    margin:0 0 36px;
+    line-height:1.9;
+  }
+  .light-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+    gap:20px;
+  }
+  @media (max-width:560px){
+    .light-grid{ grid-template-columns:1fr; }
+  }
+  .light-card{
+    display:block;
+    text-decoration:none;
+    position:relative;
+    padding:34px 26px;
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-left:5px solid var(--card-color, var(--amber));
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .light-card:hover, .light-card:focus-visible{
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px -18px rgba(27,34,51,0.35);
+    outline:none;
+  }
+  .light-card:focus-visible{
+    outline:2px solid var(--card-color, var(--amber));
+    outline-offset:3px;
+  }
+  .light-card .glow{
+    width:14px; height:14px;
+    border-radius:50%;
+    background:var(--card-color, var(--amber));
+    margin-bottom:18px;
+    box-shadow:0 0 0 6px color-mix(in srgb, var(--card-color, var(--amber)) 18%, transparent);
+  }
+  .light-card h2{
+    font-family:var(--serif);
+    font-size:1.4rem;
+    margin:0 0 8px;
+    color:var(--text);
+  }
+  .light-card p{
+    margin:0;
+    font-size:.92rem;
+    color:var(--text-soft);
+    line-height:1.75;
+  }
+
+  .math{ --card-color: var(--amber); }
+  .chinese{ --card-color: var(--coral); }
+  .strategy{ --card-color: var(--teal); }
+  .social{ --card-color: var(--lilac); }
+  .misc{ --card-color: var(--sage); }
+
+  /* ---------- RESOURCE SECTIONS ---------- */
+  .resource-section{
+    max-width:720px;
+    margin:0 auto;
+    padding:96px 24px;
+    border-top:1px solid var(--line);
+    scroll-margin-top: 24px;
+  }
+  .resource-section .glow{
+    width:14px; height:14px;
+    border-radius:50%;
+    margin-bottom:22px;
+    background:var(--sec-color);
+    box-shadow:0 0 0 7px color-mix(in srgb, var(--sec-color) 16%, transparent);
+  }
+  .resource-section h2{
+    font-family:var(--serif);
+    font-size:clamp(1.6rem, 4vw, 2.1rem);
+    margin:0 0 14px;
+  }
+  .resource-section .status{
+    display:inline-block;
+    font-size:.85rem;
+    color:var(--text-soft);
+    background:var(--cream-dim);
+    border:1px solid var(--line);
+    padding:6px 14px;
+    margin-bottom:22px;
+  }
+  .resource-section p{
+    font-size:1rem;
+    line-height:2;
+    color:var(--text);
+    max-width:34em;
+  }
+  .resource-section p a{
+    color:var(--sec-color);
+    font-weight:500;
+    text-decoration-thickness:1.5px;
+    text-underline-offset:3px;
+  }
+  #math{ --sec-color: var(--amber); }
+  #chinese{ --sec-color: var(--coral); }
+  #strategy{ --sec-color: var(--teal); }
+  #social{ --sec-color: var(--lilac); }
+  #misc{ --sec-color: var(--sage); }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    text-align:center;
+    padding:48px 24px 64px;
+    color:var(--text-soft);
+    font-size:.88rem;
+    line-height:1.9;
+  }
+</style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow-mark" aria-hidden="true">✦</div>
+      <h1>郭然有光</h1>
+      <p class="role">郭老師的特教互動教室</p>
+      <p class="tagline">每一種步調，都有自己的光。</p>
+    </div>
+  </section>
+
+  <nav class="lights" aria-label="資源分類">
+    <p class="lights-intro">這裡收著給不同孩子、不同節奏準備的小教材。<br>點一盞燈，看看裡面有什麼。</p>
+    <div class="light-grid">
+      <a class="light-card math" href="#math">
+        <span class="glow" aria-hidden="true"></span>
+        <h2>數學資源</h2>
+        <p>從數數到應用題，用看得懂的方式拆解每一步。</p>
+      </a>
+      <a class="light-card chinese" href="#chinese">
+        <span class="glow" aria-hidden="true"></span>
+        <h2>國語資源</h2>
+        <p>識字、造句、閱讀理解，一點一點累積語感。</p>
+      </a>
+      <a class="light-card strategy" href="#strategy">
+        <span class="glow" aria-hidden="true"></span>
+        <h2>學習策略</h2>
+        <p>找到適合自己的方法，比追上進度更重要。</p>
+      </a>
+      <a class="light-card social" href="#social">
+        <span class="glow" aria-hidden="true"></span>
+        <h2>社會技巧</h2>
+        <p>練習表達、輪流、讀懂情緒，好好和世界相處。</p>
+      </a>
+      <a class="light-card misc" href="#misc">
+        <span class="glow" aria-hidden="true"></span>
+        <h2>未分類資源</h2>
+        <p>還沒歸類的教材，先放在這裡慢慢整理。</p>
+      </a>
+    </div>
+  </nav>
+
+  <section class="resource-section" id="math">
+    <span class="glow" aria-hidden="true"></span>
+    <h2>數學資源</h2>
+    <span class="status">內容準備中</span>
+    <p>這裡未來會放數學相關的互動練習與教材，敬請期待。</p>
+  </section>
+
+  <section class="resource-section" id="chinese">
+    <span class="glow" aria-hidden="true"></span>
+    <h2>國語資源</h2>
+    <span class="status">內容準備中</span>
+    <p>這裡未來會放國語文相關的互動練習與教材，敬請期待。</p>
+    <p><a href="https://kuomeow.github.io/301/%E6%89%BE%E5%87%BA%E8%90%AC%E7%9A%84%E5%BD%A2%E8%BF%91%E5%AD%97-%E6%89%8B%E6%A9%9F%E8%81%B2%E9%9F%B3%E7%89%882" target="_blank" rel="noopener">🔍 找出萬的形近字（手機聲音版）— 點我開始玩</a></p>
+  </section>
+
+  <section class="resource-section" id="strategy">
+    <span class="glow" aria-hidden="true"></span>
+    <h2>學習策略</h2>
+    <span class="status">內容準備中</span>
+    <p>這裡未來會放各種學習策略與工具，敬請期待。</p>
+  </section>
+
+  <section class="resource-section" id="social">
+    <span class="glow" aria-hidden="true"></span>
+    <h2>社會技巧</h2>
+    <span class="status">內容準備中</span>
+    <p>這裡未來會放社會技巧練習教材，敬請期待。</p>
+  </section>
+
+  <section class="resource-section" id="misc">
+    <span class="glow" aria-hidden="true"></span>
+    <h2>未分類資源</h2>
+    <span class="status">內容準備中</span>
+    <p>這裡先放暫時還沒歸類的教材，之後會慢慢整理分類。</p>
+  </section>
+
+  <footer>
+    郭然有光 · 郭老師的特教互動教室
+  </footer>
+
+</body>
+</html>
