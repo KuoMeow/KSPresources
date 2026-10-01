@@ -1,0 +1,234 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>顏色注意力遊戲</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style>
+/* 版面：上方關卡標題與題目（可語音報讀），中間 5×4 字卡，下方計分區。單一淺灰風格，確保黑色字看得見 */
+:root{
+  --bg:#d9d9d9; --paper:#e9e9e9; --hover:#dedede; --ink:#2a2522; --muted:#5f5752; --line:#c4c4c4; --accent:#2e6f8e;
+  --ok-bg:#d3e8d7; --ok-line:#8cc39a; --bad-bg:#f0d6d4; --bad-line:#dc9a95;
+  --c-red:#e0261f; --c-yellow:#f2be00; --c-blue:#1f6fd6; --c-green:#1d8a3b; --c-black:#111111; --c-purple:#8a4fd9; --c-orange:#ff8419;
+  --kai:"DFKai-SB","標楷體","BiauKai","TW-Kai","Kaiti TC","STKaiti","LXGW WenKai TC",serif;
+  color-scheme:light;
+}
+html,body{background:var(--bg);color:var(--ink)}
+[hidden]{display:none!important}
+body{margin:0;font-family:var(--kai);padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+h1{margin:0;font-size:clamp(28px,6vw,40px);color:var(--accent);letter-spacing:.06em}
+.q{display:flex;align-items:center;gap:10px}
+.hint{margin:0;font-size:clamp(18px,4vw,24px);color:var(--ink);letter-spacing:.1em}
+.speak{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--paper);cursor:pointer;display:grid;place-items:center;color:var(--accent);flex:none}
+.speak:hover{border-color:var(--accent)}
+.speak:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.speak.on{background:var(--accent);color:#fff}
+.speak svg{width:22px;height:22px}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:clamp(10px,3vw,24px)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,1.5vw,12px)}
+.cell{position:relative;appearance:none;border:2px solid transparent;background:none;border-radius:10px;cursor:pointer;
+  font-family:var(--kai);font-weight:700;font-size:clamp(40px,11vw,76px);line-height:1.2;padding:4px 0 2px;
+  display:flex;flex-direction:column;align-items:center;transition:background .15s,border-color .15s}
+.cell:hover{background:var(--hover)}
+.cell:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.cell.ok{background:var(--ok-bg);border-color:var(--ok-line)}
+.cell.ok::after{content:"✓";position:absolute;top:2px;right:6px;font-size:18px;color:var(--c-green);font-family:system-ui,sans-serif}
+.cell.reading{border-color:var(--accent)}
+.ans{font-size:14px;font-weight:400;color:var(--muted);letter-spacing:.1em;visibility:hidden;font-family:var(--kai)}
+.show-ans .ans{visibility:visible}
+.tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+button.btn{font-family:var(--kai);font-size:18px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.score{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.score-line{display:flex;align-items:center;gap:14px;font-size:clamp(24px,6vw,34px);flex-wrap:wrap;justify-content:center}
+.num{font-size:clamp(48px,12vw,72px);font-weight:700;color:var(--accent);min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums;font-family:system-ui,sans-serif}
+.step{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:28px;cursor:pointer;color:var(--ink);font-family:system-ui,sans-serif}
+.step:focus-visible{outline:3px solid var(--accent)}
+.sub{margin:0;color:var(--muted);font-size:17px;text-align:center}
+.timer{font-family:system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:20px;color:var(--ink)}
+.history{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-size:16px;color:var(--muted)}
+.history li{border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--bg)}
+.note{margin:0;font-size:15px;color:var(--muted);text-align:center}
+.praise{position:fixed;inset:0;background:rgba(40,40,40,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.praise-card{background:var(--paper);border-radius:20px;padding:28px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.thumb{font-size:clamp(110px,30vw,170px);line-height:1;animation:pop .6s cubic-bezier(.3,1.6,.5,1) both,wave 1.2s .6s ease-in-out 2}
+.praise-text{margin:0;font-size:clamp(36px,9vw,56px);font-weight:700;color:var(--c-orange);letter-spacing:.1em}
+.praise-score{margin:0;font-size:22px;color:var(--ink)}
+.stars{font-size:28px;letter-spacing:.3em;color:var(--c-yellow)}
+@keyframes pop{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+@keyframes wave{50%{transform:rotate(-14deg) scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.thumb{animation:none}}
+.cell.bad{background:var(--bad-bg);border-color:var(--bad-line)}
+.cell.bad::after{content:"✗";position:absolute;top:2px;right:6px;font-size:18px;color:var(--c-red);font-family:system-ui,sans-serif}
+@media (max-width:420px){.cell.ok::after,.cell.bad::after{font-size:13px;right:3px}.ans{font-size:11px}}
+@media (prefers-reduced-motion:reduce){.cell{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 id="levelTitle">第一關</h1>
+    <div class="q">
+      <p class="hint" id="hint">請讀出以下文字的顏色</p>
+      <button class="speak" id="speakBtn" type="button" aria-label="語音報讀題目" title="語音報讀題目">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="board" id="board">
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <div class="tools">
+    <button class="btn" id="timerBtn" type="button">開始計時</button>
+    <span class="timer" id="timer" aria-live="polite">0.0 秒</span>
+    <button class="btn" id="ansBtn" type="button">顯示答案</button>
+    <button class="btn" id="readAnsBtn" type="button">念出答案</button>
+    <button class="btn" id="newBtn" type="button">重新出題</button>
+  </div>
+
+  <section class="score">
+    <div class="score-line">
+      <span>我念對了</span><span class="num" id="count">0</span><span>個</span>
+    </div>
+    <p class="sub"><span id="progress">已念 0 / 20 個</span>　·　念對點一下（✓），念錯點兩下（✗），20 個都點完就完成這一關</p>
+    <ul class="history" id="history"></ul>
+  </section>
+  <div class="praise" id="praise" hidden role="dialog" aria-modal="true" aria-labelledby="praiseText">
+    <div class="praise-card">
+      <div class="stars" aria-hidden="true">★★★</div>
+      <div class="thumb" role="img" aria-label="讚">👍</div>
+      <p class="praise-text" id="praiseText">恭喜你完成！</p>
+      <p class="praise-score" id="praiseScore"></p>
+      <button class="btn primary" id="goBtn" type="button">下一關</button>
+    </div>
+  </div>
+  <p class="note" id="voiceNote" hidden>這個瀏覽器不支援語音報讀，請改用 Chrome 或 Edge。</p>
+</div>
+
+<script>
+const COLORS=[
+  {name:"紅",v:"var(--c-red)"},{name:"黃",v:"var(--c-yellow)"},{name:"藍",v:"var(--c-blue)"},
+  {name:"綠",v:"var(--c-green)"},{name:"黑",v:"var(--c-black)"},{name:"紫",v:"var(--c-purple)"},{name:"橘",v:"var(--c-orange)"}
+];
+// 三關：1 字和顏色相同、念顏色；2 字和顏色不同、念顏色；3 字和顏色不同、念文字
+const LEVELS=[
+  {hint:"請讀出以下文字的顏色",same:true, read:"color"},
+  {hint:"請讀出以下文字的顏色",same:false,read:"color"},
+  {hint:"請念出以下的文字",    same:false,read:"word"}
+];
+const N=20, CN="零一二三四五六七八九十";
+const $=id=>document.getElementById(id);
+let level=1,count=0,showAns=false,t0=null,elapsed=0,tick=null,items=[];
+const history=[];
+const rnd=n=>Math.floor(Math.random()*n);
+const cfg=()=>LEVELS[level-1];
+
+function makePuzzle(same){
+  const out=[];
+  for(let i=0;i<N;i++){
+    let w,c,tries=0;
+    do{
+      w=rnd(7);c=same?w:rnd(7);tries++;
+    }while(((!same&&c===w)||(i%5&&out[i-1].c===c)||(i>=5&&out[i-5].c===c))&&tries<200);
+    out.push({w,c});
+  }
+  return out;
+}
+const answerOf=it=>cfg().read==="color"?COLORS[it.c].name:COLORS[it.w].name;
+
+function render(){
+  $("levelTitle").textContent="第"+CN[level]+"關";
+  $("hint").textContent=cfg().hint;
+  $("praise").hidden=true;clearTimeout(doneTimer);
+  items=makePuzzle(cfg().same);
+  const grid=$("grid");grid.innerHTML="";
+  items.forEach((it,i)=>{
+    const b=document.createElement("button");
+    b.type="button";b.className="cell";b.id="cell"+i;
+    b.style.color=COLORS[it.c].v;
+    b.setAttribute("aria-label",COLORS[it.w].name+"，尚未念");
+    b.innerHTML=COLORS[it.w].name+'<span class="ans">'+answerOf(it)+(cfg().read==="color"?"色":"")+'</span>';
+    // 點一下＝念對（✓），再點一下＝念錯（✗），再點一下＝清除
+    b.addEventListener("click",()=>{
+      if(b.classList.contains("ok")){b.classList.replace("ok","bad")}
+      else if(b.classList.contains("bad")){b.classList.remove("bad")}
+      else{b.classList.add("ok")}
+      const st=b.classList.contains("ok")?"念對":b.classList.contains("bad")?"念錯":"尚未念";
+      b.setAttribute("aria-label",COLORS[it.w].name+"，"+st);
+      update();
+    });
+    grid.appendChild(b);
+  });
+  update();resetTimer();
+}
+let doneTimer=null;
+function update(){
+  const cells=[...document.querySelectorAll(".cell")];
+  count=cells.filter(c=>c.classList.contains("ok")).length;
+  const marked=cells.filter(c=>c.classList.contains("ok")||c.classList.contains("bad")).length;
+  $("count").textContent=count;
+  $("progress").textContent="已念 "+marked+" / "+N+" 個";
+  clearTimeout(doneTimer);
+  if(marked===N)doneTimer=setTimeout(finishLevel,500);
+}
+
+/* 語音報讀 */
+const synth=window.speechSynthesis;
+let zhVoice=null;
+function pickVoice(){
+  if(!synth)return;
+  const vs=synth.getVoices();
+  zhVoice=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_](HK|Hant)/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
+}
+if(synth){pickVoice();synth.onvoiceschanged=pickVoice}else{$("voiceNote").hidden=false}
+function stopSpeak(){if(synth)synth.cancel();$("speakBtn").classList.remove("on");document.querySelectorAll(".cell.reading").forEach(c=>c.classList.remove("reading"))}
+function say(text,onStart,onEnd){
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=zhVoice?zhVoice.lang:"zh-TW";if(zhVoice)u.voice=zhVoice;u.rate=.85;
+  if(onStart)u.onstart=onStart;if(onEnd)u.onend=onEnd;
+  synth.speak(u);
+}
+function speakQuestion(){
+  if(!synth)return;
+  stopSpeak();
+  $("speakBtn").classList.add("on");
+  say($("levelTitle").textContent+"。"+cfg().hint,null,()=>$("speakBtn").classList.remove("on"));
+}
+$("speakBtn").onclick=speakQuestion;
+$("readAnsBtn").onclick=()=>{
+  if(!synth)return;
+  stopSpeak();
+  items.forEach((it,i)=>say(answerOf(it),
+    ()=>{document.querySelectorAll(".cell.reading").forEach(c=>c.classList.remove("reading"));$("cell"+i).classList.add("reading")},
+    ()=>{if(i===N-1)$("cell"+i).classList.remove("reading")}));
+};
+
+function fmt(ms){return (ms/1000).toFixed(1)+" 秒"}
+function resetTimer(){clearInterval(tick);tick=null;t0=null;elapsed=0;$("timer").textContent=fmt(0);$("timerBtn").textContent="開始計時"}
+$("timerBtn").onclick=()=>{
+  if(tick){clearInterval(tick);tick=null;elapsed+=Date.now()-t0;$("timer").textContent=fmt(elapsed);$("timerBtn").textContent="繼續計時";}
+  else{t0=Date.now();tick=setInterval(()=>$("timer").textContent=fmt(elapsed+Date.now()-t0),100);$("timerBtn").textContent="停止計時";}
+};
+$("ansBtn").onclick=()=>{showAns=!showAns;$("board").classList.toggle("show-ans",showAns);$("ansBtn").textContent=showAns?"隱藏答案":"顯示答案"};
+$("newBtn").onclick=()=>{stopSpeak();render()};
+// 20 個字都點完（念到最後一個字）：跳出讚的圖片，並說「恭喜你完成」
+function finishLevel(){
+  const time=tick?elapsed+Date.now()-t0:elapsed;
+  clearInterval(tick);tick=null;elapsed=time;$("timer").textContent=fmt(time);
+  history.push("第"+CN[level]+"關："+count+"/"+N+(time?"，"+fmt(time):""));
+  $("history").innerHTML=history.map(h=>"<li>"+h+"</li>").join("");
+  $("praiseScore").textContent="第"+CN[level]+"關念對了 "+count+" 個"+(time?"，用了 "+fmt(time):"");
+  $("goBtn").textContent=level<LEVELS.length?"前往第"+CN[level+1]+"關":"再玩一次";
+  $("praise").hidden=false;$("goBtn").focus();
+  if(synth){stopSpeak();say("恭喜你完成！")}
+}
+$("goBtn").onclick=()=>{
+  $("praise").hidden=true;
+  level=level<LEVELS.length?level+1:1;
+  render();speakQuestion();
+};
+render();
+</script>
