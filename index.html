@@ -208,6 +208,63 @@
     font-size:.88rem;
     line-height:1.9;
   }
+
+  /* ---------- 16:9 大螢幕：字放大、版面加寬 ---------- */
+  html{ font-size:calc(clamp(18px, 1.3vw, 28px) * var(--fs, 1)); }
+  .hero{ padding: 7vh 24px 6vh; }
+  .hero h1{ font-size:clamp(3.2rem, 6vw, 6rem); }
+  .hero .role{ font-size:clamp(1.4rem, 2.2vw, 2.2rem); }
+  .hero .tagline{ font-size:clamp(1.2rem, 1.6vw, 1.6rem); max-width:none; }
+  .lights{ max-width:1500px; padding:40px 32px 20px; }
+  .lights-intro{ font-size:1.15rem; }
+  .light-grid{ grid-template-columns:repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); gap:24px; }
+  .light-card{ padding:36px 28px; }
+  .light-card h2{ font-size:1.8rem; }
+  .light-card p{ font-size:1.05rem; }
+  .resource-section{ max-width:1200px; padding:80px 32px; }
+  .resource-section h2{ font-size:clamp(2rem, 3vw, 2.8rem); }
+  .resource-section .status{ font-size:1rem; }
+  .resource-section p{ font-size:1.2rem; max-width:none; }
+  footer{ font-size:1rem; }
+
+  /* ---------- 滑鼠語音 ---------- */
+  [data-say]{ cursor:pointer; }
+  .speaking{ outline:3px dashed var(--coral); outline-offset:6px; border-radius:4px; }
+
+  /* ---------- 無障礙工具列（右上角） ---------- */
+  .a11y-bar{
+    position:fixed; top:calc(14px + env(safe-area-inset-top,0px)); right:14px; z-index:50;
+    display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; max-width:calc(100% - 28px);
+    padding:8px; border-radius:18px;
+    background:rgba(27,34,51,.88); box-shadow:0 8px 22px -10px rgba(0,0,0,.6);
+  }
+  .a11y-bar button{
+    font-family:var(--sans); font-size:18px; font-weight:700; line-height:1;
+    min-width:48px; min-height:44px; padding:8px 14px; border-radius:12px; cursor:pointer;
+    border:2px solid #F4F1E8; background:var(--ink); color:#F4F1E8;
+  }
+  .a11y-bar button[aria-pressed="true"]{ background:#FFE600; color:#000; border-color:#FFE600; }
+  .a11y-bar button:disabled{ opacity:.4; cursor:not-allowed; }
+  .a11y-bar button:focus-visible{ outline:3px solid #FFE600; outline-offset:3px; }
+  .a11y-bar .size-now{ align-self:center; font-family:var(--sans); font-size:18px; font-weight:700; color:#F4F1E8; padding:0 4px; }
+
+  /* ---------- 黑底白字（高對比） ---------- */
+  html.hc{
+    --ink:#000; --cream:#000; --cream-dim:#000; --line:#FFFFFF;
+    --text:#FFFFFF; --text-soft:#FFFFFF;
+    --amber:#FFE600; --coral:#FFE600; --teal:#FFE600; --lilac:#FFE600; --sage:#FFE600;
+  }
+  html.hc body{ background:#000; color:#fff; }
+  html.hc .hero{ background:#000; border-bottom:3px solid #fff; }
+  html.hc .hero::before{ display:none; }
+  html.hc .hero .role, html.hc .hero .tagline{ color:#fff; }
+  html.hc .light-card{ background:#000; border:3px solid #fff; border-left:8px solid #FFE600; }
+  html.hc .light-card h2, html.hc .light-card p{ color:#fff; }
+  html.hc .resource-section{ border-top:3px solid #fff; }
+  html.hc .resource-section .status{ background:#000; color:#fff; border:2px solid #fff; }
+  html.hc .resource-section p a{ color:#FFE600; }
+  html.hc .speaking{ outline:4px dashed #FFE600; }
+  html.hc .a11y-bar{ background:#000; border:2px solid #fff; }
 </style>
 </head>
 <body>
@@ -271,8 +328,9 @@
   <section class="resource-section" id="strategy">
     <span class="glow" aria-hidden="true"></span>
     <h2>學習策略</h2>
-    <span class="status">內容準備中</span>
-    <p>這裡未來會放各種學習策略與工具，敬請期待。</p>
+    <span class="status">持續更新中</span>
+    <p>各種學習策略與專注力練習，會一點一點補上。</p>
+    <p><a href="https://kuomeow.github.io/KSPresources/%E9%A1%8F%E8%89%B2%E6%B3%A8%E6%84%8F%E5%8A%9B%E9%81%8A%E6%88%B21" target="_blank" rel="noopener">🎨 顏色注意力遊戲｜讀出文字的顏色，練習專注力 — 點我開始玩</a></p>
   </section>
 
   <section class="resource-section" id="social">
@@ -292,6 +350,104 @@
   <footer>
     郭然有光 · 郭老師的特教互動教室
   </footer>
+
+  <div class="a11y-bar" role="toolbar" aria-label="無障礙工具">
+    <button id="fsDown" aria-label="字變小" data-say="字變小">A－</button>
+    <span class="size-now" id="fsNow" aria-live="polite">100%</span>
+    <button id="fsUp" aria-label="字變大" data-say="字變大">A＋</button>
+    <button id="hcBtn" aria-pressed="false" data-say="黑底白字">◐ 黑底白字</button>
+    <button id="voiceBtn" aria-pressed="true">🔊 語音：開</button>
+  </div>
+
+<script>
+/* 無障礙設定：字體大小、黑底白字（設定會記在這台電腦） */
+var KSP = (function(){
+  var root = document.documentElement;
+  var sizes = [1, 1.2, 1.4, 1.65, 1.9];
+  var fsI = 0, hc = false;
+  try{
+    fsI = Math.max(0, Math.min(sizes.length-1, parseInt(localStorage.getItem('ksp-fs') || '0', 10) || 0));
+    hc = localStorage.getItem('ksp-hc') === 'on';
+  }catch(e){}
+  var down = document.getElementById('fsDown'), up = document.getElementById('fsUp'),
+      now = document.getElementById('fsNow'), hcBtn = document.getElementById('hcBtn');
+
+  function applySize(){
+    root.style.setProperty('--fs', sizes[fsI]);
+    now.textContent = Math.round(sizes[fsI]*100) + '%';
+    down.disabled = fsI === 0; up.disabled = fsI === sizes.length-1;
+    try{ localStorage.setItem('ksp-fs', fsI); }catch(e){}
+  }
+  function applyHc(){
+    root.classList.toggle('hc', hc);
+    hcBtn.setAttribute('aria-pressed', hc);
+    hcBtn.textContent = hc ? '◑ 一般顏色' : '◐ 黑底白字';
+    hcBtn.setAttribute('data-say', hc ? '換回一般顏色' : '換成黑底白字');
+    try{ localStorage.setItem('ksp-hc', hc ? 'on' : 'off'); }catch(e){}
+  }
+  down.addEventListener('click', function(){ if(fsI>0){ fsI--; applySize(); KSP.say('字變小，' + now.textContent); } });
+  up.addEventListener('click', function(){ if(fsI<sizes.length-1){ fsI++; applySize(); KSP.say('字變大，' + now.textContent); } });
+  hcBtn.addEventListener('click', function(){ hc = !hc; applyHc(); KSP.say(hc ? '已換成黑底白字' : '已換回一般顏色'); });
+  applySize(); applyHc();
+  return { say:function(){} };
+})();
+
+/* 滑鼠移到標題、分類卡片、教材連結上，就唸出來 */
+(function(){
+  var synth = window.speechSynthesis;
+  var btn = document.getElementById('voiceBtn');
+  if(!synth){ btn.hidden = true; return; }
+  var on = true;
+  try{ on = localStorage.getItem('ksp-voice') !== 'off'; }catch(e){}
+  KSP.say = function(t){ say(t); };
+
+  function clean(t){
+    return t.replace(/\p{Extended_Pictographic}|️/gu,'')
+            .replace(/[｜—]/g,'，').replace(/\s+/g,' ').trim();
+  }
+  function say(t){
+    if(!on || !t) return;
+    try{
+      synth.cancel();
+      var u = new SpeechSynthesisUtterance(t);
+      u.lang = 'zh-TW'; u.rate = .9;
+      synth.speak(u);
+    }catch(e){}
+  }
+  function setOn(v, quiet){
+    on = v;
+    btn.setAttribute('aria-pressed', v);
+    btn.textContent = v ? '🔊 語音：開' : '🔇 語音：關';
+    btn.setAttribute('data-say', v ? '語音導覽，開' : '語音導覽，關');
+    try{ localStorage.setItem('ksp-voice', v ? 'on' : 'off'); }catch(e){}
+    if(quiet) return; if(v) say('語音導覽打開了'); else synth.cancel();
+  }
+  btn.addEventListener('click', function(){ setOn(!on); });
+  setOn(on, true);
+
+  // 要唸的地方：大標題、副標、分類卡片、每區標題、教材連結
+  var targets = document.querySelectorAll('.hero h1, .hero .role, .hero .tagline, .light-card, .resource-section h2, .resource-section p a');
+  targets.forEach(function(el){
+    var text = el.classList.contains('light-card')
+      ? el.querySelector('h2').textContent + '。' + el.querySelector('p').textContent
+      : el.textContent;
+    el.setAttribute('data-say', clean(text));
+    function go(){ say(el.getAttribute('data-say')); el.classList.add('speaking'); }
+    function stop(){ el.classList.remove('speaking'); }
+    el.addEventListener('mouseenter', go);
+    el.addEventListener('focus', go);
+    el.addEventListener('mouseleave', stop);
+    el.addEventListener('blur', stop);
+  });
+
+  // 工具列按鈕也會唸（內容隨開關狀態改變，所以每次都重新讀）
+  document.querySelectorAll('.a11y-bar button').forEach(function(b){
+    function go(){ if(!b.disabled) say(b.getAttribute('data-say')); }
+    b.addEventListener('mouseenter', go);
+    b.addEventListener('focus', go);
+  });
+})();
+</script>
 
 </body>
 </html>
