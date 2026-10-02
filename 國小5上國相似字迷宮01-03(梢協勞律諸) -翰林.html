@@ -39,10 +39,10 @@ html,body{margin:0;height:100%;overflow:hidden}
 body{background:var(--frame);color:var(--ink);font-family:var(--kai);line-height:1.4}
 button,select,input{font-family:var(--kai)}
 #stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;background:var(--stage);
-  display:grid;grid-template-columns:840px 1fr;gap:36px;padding:30px 40px 30px 30px}
-canvas{width:840px;height:840px;display:block;touch-action:none;border-radius:8px}
-.side{display:flex;flex-direction:column;gap:22px;min-width:0}
-h1{margin:0;font-size:68px;line-height:1.05;font-weight:400}
+  display:grid;grid-template-columns:1010px 1fr;gap:28px;padding:18px 24px 18px 18px}
+#cv{width:1010px;height:864px;display:block;touch-action:none;border-radius:8px}
+.side{display:flex;flex-direction:column;gap:20px;min-width:0}
+h1{margin:0;font-size:64px;line-height:1.05;font-weight:400}
 .sub{margin:6px 0 0;font-size:28px;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:12px}
 .chip{font-size:32px;font-weight:400;border:3px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 20px;cursor:pointer}
@@ -50,14 +50,16 @@ h1{margin:0;font-size:68px;line-height:1.05;font-weight:400}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:6px solid var(--player);outline-offset:3px}
 .lbl{font-size:26px;font-weight:400;color:var(--muted);margin:0 0 8px}
 .goal{display:flex;flex-wrap:wrap;gap:12px}
-.goal span{font-size:66px;width:90px;height:90px;display:grid;place-items:center;border-radius:12px;background:var(--tile);color:var(--tile-ink);border:3px solid #000;font-weight:400}
+.goal span{font-size:56px;width:74px;height:74px;display:grid;place-items:center;border-radius:12px;background:var(--tile);color:var(--tile-ink);border:3px solid #000;font-weight:400}
 .goal span.ok{background:var(--done);color:var(--done-ink)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-variant-numeric:tabular-nums}
-.stats div{background:var(--soft);border-radius:12px;padding:8px 12px}
-.stats b{display:block;font-size:44px;line-height:1.1}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-variant-numeric:tabular-nums}
+.stats div{background:var(--soft);border-radius:12px;padding:6px 10px}
+.stats b{display:block;font-size:42px;line-height:1.1}
 .stats small{font-size:24px;color:var(--muted)}
-.bottom{display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:center;margin-top:auto}
-.pad{display:grid;grid-template-columns:repeat(3,84px);grid-template-rows:repeat(2,76px);gap:8px}
+.stats .hit{animation:hit .6s}
+@keyframes hit{0%,100%{background:var(--soft)}30%{background:#FF9AA8;transform:scale(1.08)}}
+.bottom{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;margin-top:auto}
+.pad{display:grid;grid-template-columns:repeat(3,76px);grid-template-rows:repeat(2,72px);gap:8px}
 .pad button{font-size:40px;border:3px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);cursor:pointer}
 .pad button:active{background:var(--tile);color:#000}
 .pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
@@ -119,17 +121,14 @@ tr.gstart td{border-top:5px solid var(--line)}
   <div class="side">
     <div>
       <h1>相似字迷宮</h1>
-      <p class="sub">翰林 五上 第1～3課｜帶小貓走過黃色字卡，唸一唸、選對字，送牠回家</p>
+      <p class="sub">翰林五上 1～3課｜小心怪獸！</p>
     </div>
     <div class="chips" id="groups" role="group" aria-label="選擇字組"></div>
-    <div>
-      <p class="lbl">這一關要找的字</p>
-      <div class="goal" id="goal"></div>
-    </div>
+    <div class="goal" id="goal" aria-label="要找的字"></div>
     <div class="stats">
       <div><b id="sDone">0/0</b><small>完成</small></div>
+      <div id="sScoreBox"><b id="sScore">100</b><small>分數</small></div>
       <div><b id="sWrong">0</b><small>選錯</small></div>
-      <div><b id="sSteps">0</b><small>步數</small></div>
       <div><b id="sTime">0:00</b><small>時間</small></div>
     </div>
     <div class="bottom">
@@ -140,18 +139,18 @@ tr.gstart td{border-top:5px solid var(--line)}
         <button class="right" data-d="1,0" aria-label="右">▶</button>
       </div>
       <div class="set">
+        <select id="size" aria-label="迷宮大小">
+          <option value="7,6,1">很簡單 7×6</option>
+          <option value="9,8,2" selected>簡單 9×8</option>
+          <option value="11,10,3">普通 11×10</option>
+        </select>
         <div class="row">
-          <label for="size">迷宮</label>
-          <select id="size">
-            <option value="6">很簡單 6×6</option>
-            <option value="8" selected>簡單 8×8</option>
-            <option value="10">普通 10×10</option>
-          </select>
+          <label class="tg"><input type="checkbox" id="zyOn" checked> 注音</label>
+          <label class="tg"><input type="checkbox" id="monOn" checked> 怪獸</label>
         </div>
-        <label class="tg"><input type="checkbox" id="zyOn" checked> 顯示注音</label>
         <div class="row">
           <button class="btn" id="newMaze">換迷宮</button>
-          <button class="btn ghost" id="showRef">字卡一覽</button>
+          <button class="btn ghost" id="showRef">字卡</button>
         </div>
       </div>
     </div>
@@ -174,31 +173,33 @@ const G=[
 G.forEach((g,gi)=>g.a.forEach(it=>it.g=gi));
 const MIX=G.length; // 最後一顆按鈕＝全部混合
 const KAI='"DFKai-SB","標楷體","BiauKai","TW-Kai","LXGW WenKai TC","KaiTi",serif';
-const W=840; // 迷宮設計尺寸
+const CW=1010,CH=864; // 迷宮畫布設計尺寸（橫向長方形）
 const $=id=>document.getElementById(id);
 const stage=$('stage'),cv=$('cv'),ctx=cv.getContext('2d');
 const rnd=n=>Math.floor(Math.random()*n);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 
-let S={group:0,size:8,mix:.35,k:1};
+let S={group:0,cols:9,rows:8,nMon:2,mix:.35,k:1,mons:[],score:100,inv:0,fx:null};
 
 /* ---------- 16:9 縮放 ---------- */
 function fit(){
   const k=Math.min(innerWidth/1600,innerHeight/900);S.k=k;
   stage.style.transform=`translate(${(innerWidth-1600*k)/2}px,${(innerHeight-900*k)/2}px) scale(${k})`;
+  const s=k*(window.devicePixelRatio||1);S.dpr=s;
+  cv.width=Math.round(CW*s);cv.height=Math.round(CH*s);
   if(S.walls)draw();
 }
 
 /* ---------- maze ---------- */
-function genMaze(N){
-  const w=[...Array(N)].map(()=>[...Array(N)].map(()=>({t:1,r:1,b:1,l:1})));
-  const seen=[...Array(N)].map(()=>Array(N).fill(false));
-  const act=[[rnd(N),rnd(N)]];seen[act[0][1]][act[0][0]]=true;
+function genMaze(C,R){
+  const w=[...Array(R)].map(()=>[...Array(C)].map(()=>({t:1,r:1,b:1,l:1})));
+  const seen=[...Array(R)].map(()=>Array(C).fill(false));
+  const act=[[rnd(C),rnd(R)]];seen[act[0][1]][act[0][0]]=true;
   const D=[[0,-1,'t','b'],[1,0,'r','l'],[0,1,'b','t'],[-1,0,'l','r']];
   while(act.length){
     const idx=Math.random()<S.mix?act.length-1:rnd(act.length);
     const [x,y]=act[idx];
-    const nb=D.filter(([dx,dy])=>{const nx=x+dx,ny=y+dy;return nx>=0&&ny>=0&&nx<N&&ny<N&&!seen[ny][nx]});
+    const nb=D.filter(([dx,dy])=>{const nx=x+dx,ny=y+dy;return nx>=0&&ny>=0&&nx<C&&ny<R&&!seen[ny][nx]});
     if(!nb.length){act.splice(idx,1);continue}
     const [dx,dy,a,b]=nb[rnd(nb.length)];
     w[y][x][a]=0;w[y+dy][x+dx][b]=0;seen[y+dy][x+dx]=true;act.push([x+dx,y+dy]);
@@ -206,58 +207,134 @@ function genMaze(N){
   return w;
 }
 function canGo(x,y,dx,dy){const c=S.walls[y][x];return dx===1?!c.r:dx===-1?!c.l:dy===1?!c.b:!c.t}
-function solvePath(N){
-  const prev={},q=[[0,0]],k=(x,y)=>x+','+y;prev[k(0,0)]=null;
-  while(q.length){const [x,y]=q.shift();if(x===N-1&&y===N-1)break;
-    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;
-      if(nx<0||ny<0||nx>=N||ny>=N||!canGo(x,y,dx,dy)||k(nx,ny) in prev)continue;
-      prev[k(nx,ny)]=[x,y];q.push([nx,ny]);}}
-  const p=[];let cur=[N-1,N-1];while(cur){p.unshift(cur);cur=prev[k(cur[0],cur[1])]}
+const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
+function openNb(x,y){return DIRS.filter(([dx,dy])=>{const nx=x+dx,ny=y+dy;return nx>=0&&ny>=0&&nx<S.cols&&ny<S.rows&&canGo(x,y,dx,dy)}).map(([dx,dy])=>[x+dx,y+dy])}
+function bfs(){ // 從起點出發的步數與前一格
+  const d={},prev={},q=[[0,0]],k=(x,y)=>x+','+y;d['0,0']=0;prev['0,0']=null;
+  while(q.length){const [x,y]=q.shift();
+    for(const [nx,ny] of openNb(x,y)){if(k(nx,ny) in d)continue;d[k(nx,ny)]=d[k(x,y)]+1;prev[k(nx,ny)]=[x,y];q.push([nx,ny])}}
+  return {d,prev};
+}
+function solvePath(){
+  const {prev}=bfs(),k=(x,y)=>x+','+y;
+  const p=[];let cur=[S.cols-1,S.rows-1];while(cur){p.unshift(cur);cur=prev[k(cur[0],cur[1])]}
   return p;
 }
 function newGame(){
-  const N=S.size;let best=null;
-  for(let t=0;t<12;t++){S.walls=genMaze(N);const p=solvePath(N);if(!best||p.length>best.p.length)best={w:S.walls,p}}
+  let best=null;
+  for(let t=0;t<12;t++){S.walls=genMaze(S.cols,S.rows);const p=solvePath();if(!best||p.length>best.p.length)best={w:S.walls,p}}
   S.walls=best.w;const path=best.p;
   let items=S.group<MIX?shuffle(G[S.group].a):shuffle(G.flatMap(g=>g.a)).slice(0,6);
   const k=Math.min(items.length,path.length-2);items=items.slice(0,k);
   S.cps=items.map((it,i)=>{const [x,y]=path[Math.round((i+1)*(path.length-1)/(k+1))];return {x,y,it,solved:false}});
   S.px=0;S.py=0;S.visited=new Set(['0,0']);S.wrong=0;S.steps=0;S.t0=Date.now();S.won=false;
+  S.score=100;S.hits=0;S.inv=0;S.fx=null;spawnMonsters();
   renderGoal();updStats();draw();
 }
 
+/* ---------- 怪獸：沿著通道慢慢走，撞到小貓扣 10 分 ---------- */
+const MON_MS=1100,HIT_PTS=10,INV_MS=2000;
+const MON_COL=['#8E4FD9','#00A3A3','#D6336C'];
+function spawnMonsters(){
+  S.mons=[];if(!$('monOn').checked)return;
+  const {d}=bfs(),far=Math.max(5,Math.floor((S.cols+S.rows)/2));
+  const taken=c=>c[0]===S.cols-1&&c[1]===S.rows-1||S.cps.some(p=>p.x===c[0]&&p.y===c[1]);
+  let cand=shuffle(Object.keys(d).filter(k=>d[k]>=far).map(k=>k.split(',').map(Number)).filter(c=>!taken(c)));
+  for(let i=0;i<S.nMon&&cand.length;i++){
+    const [x,y]=cand.shift();
+    S.mons.push({ax:x,ay:y,bx:x,by:y,px:-1,py:-1,t:1,col:MON_COL[i%MON_COL.length],ph:Math.random()*6});
+    cand=cand.filter(c=>Math.abs(c[0]-x)+Math.abs(c[1]-y)>=3);
+  }
+}
+function monPos(m){const e=m.t<.5?2*m.t*m.t:1-2*(1-m.t)*(1-m.t);return [m.ax+(m.bx-m.ax)*e,m.ay+(m.by-m.ay)*e]}
+function updateMons(dt,now){
+  S.mons.forEach(m=>{
+    m.ph+=dt/300;m.t+=dt/MON_MS;
+    if(m.t>=1){ // 到了下一格，挑新方向（盡量不走回頭路）
+      m.px=m.ax;m.py=m.ay;m.ax=m.bx;m.ay=m.by;
+      let nb=openNb(m.ax,m.ay);const fwd=nb.filter(([x,y])=>!(x===m.px&&y===m.py));if(fwd.length)nb=fwd;
+      [m.bx,m.by]=nb[rnd(nb.length)];m.t=0;
+    }
+  });
+  if(now<S.inv)return;
+  if(S.mons.some(m=>{const [x,y]=monPos(m);return Math.hypot(x-S.px,y-S.py)<.6}))hitMonster(now);
+}
+function hitMonster(now){
+  S.score=Math.max(0,S.score-HIT_PTS);S.hits++;S.inv=now+INV_MS;S.fx={t:now,x:S.px,y:S.py};
+  bonk();updStats();
+  const box=$('sScoreBox');box.classList.remove('hit');void box.offsetWidth;box.classList.add('hit');
+}
+let lastT=0;
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(100,now-(lastT||now));lastT=now;
+  if(!S.walls||!$('ov').hidden||S.won)return; // 答題、過關時怪獸暫停
+  if(S.mons.length){updateMons(dt,now);draw(now)}
+  else if(S.fx&&now-S.fx.t<1200)draw(now);
+}
+
 /* ---------- drawing ---------- */
-function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h)}
-function draw(){
-  const N=S.size,s=S.k*(window.devicePixelRatio||1);
-  cv.width=Math.round(W*s);cv.height=Math.round(W*s);ctx.setTransform(s,0,0,s,0,0);
-  const pad=12,cs=(W-pad*2)/N,lw=Math.max(7,cs*.13);
-  ctx.fillStyle=css('--path');ctx.fillRect(0,0,W,W);
+function draw(now){
+  now=now||performance.now();
+  const st=getComputedStyle(document.documentElement),css=v=>st.getPropertyValue(v).trim();
+  const C=S.cols,R=S.rows,pad=8,cs=Math.min((CW-pad*2)/C,(CH-pad*2)/R),lw=Math.max(7,cs*.13);
+  const ox=(CW-C*cs)/2,oy=(CH-R*cs)/2;
+  ctx.setTransform(S.dpr||1,0,0,S.dpr||1,0,0);ctx.clearRect(0,0,CW,CH);
+  ctx.fillStyle=css('--path');ctx.fillRect(ox-pad,oy-pad,C*cs+pad*2,R*cs+pad*2);
   ctx.fillStyle=css('--trail');
-  S.visited.forEach(v=>{const [x,y]=v.split(',').map(Number);ctx.fillRect(pad+x*cs,pad+y*cs,cs,cs)});
+  S.visited.forEach(v=>{const [x,y]=v.split(',').map(Number);ctx.fillRect(ox+x*cs,oy+y*cs,cs,cs)});
   const text=(t,x,y,size,col)=>{ctx.fillStyle=col;ctx.font=`${size}px ${KAI}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y)};
   // 終點：貓咪的家
-  drawHome(pad+(N-1)*cs,pad+(N-1)*cs,cs);
-  if(!(S.px===0&&S.py===0))text('起',pad+.5*cs,pad+.53*cs,cs*.5,css('--muted'));
+  drawHome(ox+(C-1)*cs,oy+(R-1)*cs,cs);
+  if(!(S.px===0&&S.py===0))text('起',ox+.5*cs,oy+.53*cs,cs*.5,css('--muted'));
   // 字卡：亮黃底＋黑框＋黑字
   S.cps.forEach(cp=>{
-    const m=cs*.07;rr(pad+cp.x*cs+m,pad+cp.y*cs+m,cs-2*m,cs-2*m,cs*.14);
+    const m=cs*.07;rr(ox+cp.x*cs+m,oy+cp.y*cs+m,cs-2*m,cs-2*m,cs*.14);
     ctx.fillStyle=cp.solved?css('--done'):css('--tile');ctx.fill();
     ctx.lineWidth=Math.max(3,cs*.04);ctx.strokeStyle='#000';ctx.stroke();
-    text(cp.it.c,pad+(cp.x+.5)*cs,pad+(cp.y+.54)*cs,cs*.74,css('--tile-ink'));
+    text(cp.it.c,ox+(cp.x+.5)*cs,oy+(cp.y+.54)*cs,cs*.74,css('--tile-ink'));
   });
   // 牆：粗、純黑（深色模式純白）
   ctx.strokeStyle=css('--wall');ctx.lineWidth=lw;ctx.lineCap='round';ctx.beginPath();
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const c=S.walls[y][x],X=pad+x*cs,Y=pad+y*cs;
+  for(let y=0;y<R;y++)for(let x=0;x<C;x++){const c=S.walls[y][x],X=ox+x*cs,Y=oy+y*cs;
     if(c.t&&!(x===0&&y===0)){ctx.moveTo(X,Y);ctx.lineTo(X+cs,Y)}
     if(c.l){ctx.moveTo(X,Y);ctx.lineTo(X,Y+cs)}
-    if(c.b&&!(x===N-1&&y===N-1)){ctx.moveTo(X,Y+cs);ctx.lineTo(X+cs,Y+cs)}
+    if(c.b&&!(x===C-1&&y===R-1)){ctx.moveTo(X,Y+cs);ctx.lineTo(X+cs,Y+cs)}
     if(c.r){ctx.moveTo(X+cs,Y);ctx.lineTo(X+cs,Y+cs)}}
   ctx.stroke();
-  // 玩家：橘色小貓＋黑色外框
-  drawCat(pad+(S.px+.5)*cs,pad+(S.py+.5)*cs,cs*.33);
-  S.cs=cs;S.pad=pad;
+  // 玩家：橘色小貓＋黑色外框（剛被撞到時會閃爍）
+  const catX=ox+(S.px+.5)*cs,catY=oy+(S.py+.5)*cs;
+  ctx.save();if(now<S.inv&&Math.floor(now/130)%2)ctx.globalAlpha=.3;
+  drawCat(catX,catY,cs*.33);ctx.restore();
+  // 怪獸
+  S.mons.forEach(m=>{const [x,y]=monPos(m);drawMonster(ox+(x+.5)*cs,oy+(y+.5)*cs,cs*.34,m.col,m.ph,catX,catY)});
+  // 撞到：−10 往上飄
+  if(S.fx&&now-S.fx.t<1200){const p=(now-S.fx.t)/1200;
+    ctx.save();ctx.globalAlpha=1-p;ctx.font=`${Math.round(cs*.5)}px ${KAI}`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.lineWidth=8;ctx.strokeStyle='#fff';ctx.lineJoin='round';const tx=ox+(S.fx.x+.5)*cs,ty=Math.max(oy+cs*.3,oy+(S.fx.y+.15)*cs-p*cs*.5);
+    ctx.strokeText('−'+HIT_PTS,tx,ty);ctx.fillStyle='#E0002A';ctx.fillText('−'+HIT_PTS,tx,ty);ctx.restore()}
+  S.cs=cs;S.ox=ox;S.oy=oy;
+}
+function drawMonster(cx,cy,r,col,ph,tx,ty){
+  cy+=Math.sin(ph)*r*.08;
+  ctx.save();ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle='#000';ctx.lineWidth=Math.max(3,r*.11);
+  // 角
+  ctx.fillStyle='#FFE45C';
+  [-1,1].forEach(d=>{ctx.beginPath();ctx.moveTo(cx+d*r*.35,cy-r*.7);ctx.lineTo(cx+d*r*.6,cy-r*1.15);ctx.lineTo(cx+d*r*.7,cy-r*.55);ctx.closePath();ctx.fill();ctx.stroke()});
+  // 身體：下緣波浪
+  ctx.fillStyle=col;ctx.beginPath();
+  ctx.moveTo(cx-r,cy+r*.75);ctx.lineTo(cx-r,cy-r*.05);ctx.arc(cx,cy-r*.05,r,Math.PI,0);ctx.lineTo(cx+r,cy+r*.75);
+  for(let i=0;i<4;i++){const x1=cx+r-(i+.5)*r/2,x2=cx+r-(i+1)*r/2;ctx.quadraticCurveTo(x1,cy+r*(i%2?.75:1.1)+Math.sin(ph*2+i)*r*.06,x2,cy+r*.75)}
+  ctx.closePath();ctx.fill();ctx.stroke();
+  // 大眼睛（看著小貓）
+  const ey=cy-r*.12,er=r*.4,a=Math.atan2(ty-ey,tx-cx);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,ey,er,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#000';ctx.beginPath();ctx.arc(cx+Math.cos(a)*er*.42,ey+Math.sin(a)*er*.42,er*.45,0,Math.PI*2);ctx.fill();
+  // 嘴巴＋牙齒
+  ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(cx,cy+r*.48,r*.36,r*.14,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';[-1,1].forEach(d=>{ctx.beginPath();ctx.moveTo(cx+d*r*.2,cy+r*.36);ctx.lineTo(cx+d*r*.08,cy+r*.36);ctx.lineTo(cx+d*r*.14,cy+r*.5);ctx.closePath();ctx.fill()});
+  ctx.restore();
 }
 function drawCat(cx,cy,r){
   const fur='#F5922F';
@@ -307,15 +384,15 @@ function drawHome(x0,y0,cs){
 /* ---------- movement ---------- */
 function move(dx,dy){
   if(!$('ov').hidden||S.won)return;
-  const N=S.size,nx=S.px+dx,ny=S.py+dy;
-  if(nx<0||ny<0||nx>=N||ny>=N||!canGo(S.px,S.py,dx,dy))return;
+  const nx=S.px+dx,ny=S.py+dy;
+  if(nx<0||ny<0||nx>=S.cols||ny>=S.rows||!canGo(S.px,S.py,dx,dy))return;
   const cp=S.cps.find(c=>c.x===nx&&c.y===ny&&!c.solved);
   if(cp){openQuiz(cp);return}
   step(nx,ny);
 }
 function step(x,y){
   S.px=x;S.py=y;S.steps++;S.visited.add(x+','+y);updStats();draw();
-  if(x===S.size-1&&y===S.size-1)win();
+  if(x===S.cols-1&&y===S.rows-1)win();
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!$('ov').hidden&&!S.won){closeQuiz();return}
@@ -328,8 +405,8 @@ cv.addEventListener('pointerdown',e=>{sw={x:e.clientX,y:e.clientY}});
 cv.addEventListener('pointerup',e=>{
   if(!sw)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;sw=null;
   if(Math.max(Math.abs(dx),Math.abs(dy))>20){Math.abs(dx)>Math.abs(dy)?move(Math.sign(dx),0):move(0,Math.sign(dy));return}
-  const b=cv.getBoundingClientRect(),f=W/b.width;
-  const cx=Math.floor(((e.clientX-b.left)*f-S.pad)/S.cs),cy=Math.floor(((e.clientY-b.top)*f-S.pad)/S.cs);
+  const b=cv.getBoundingClientRect(),f=CW/b.width;
+  const cx=Math.floor(((e.clientX-b.left)*f-S.ox)/S.cs),cy=Math.floor(((e.clientY-b.top)*f-S.oy)/S.cs);
   const ddx=cx-S.px,ddy=cy-S.py;if(Math.abs(ddx)+Math.abs(ddy)===1)move(ddx,ddy);
 });
 
@@ -340,7 +417,7 @@ function openQuiz(cp){
   const it=cp.it,word=it.w[rnd(it.w.length)],dlg=$('dlg'),zy=$('zyOn').checked;
   dlg.innerHTML=`<div class="step" id="dStep">第一步．唸唸看</div>
     <div class="big"><span class="ch">${it.c}</span>${zy?`<span class="zy">${it.z}</span>`:''}</div>
-    <p class="fb">大聲唸出這個字</p>
+    <p class="fb">大聲唸出來</p>
     <div class="row" style="justify-content:center">
       <button class="btn ghost" id="bSay">🔊 聽聽看</button>
       ${zy?'':'<button class="btn ghost" id="bZy">看注音</button>'}
@@ -359,15 +436,17 @@ function stepWord(cp,word){
   const opts=shuffle(G[it.g].a.map(o=>o.c));
   dlg.innerHTML=`<div class="step" id="dStep">第二步．選字造詞</div>
     <div class="word">${html}</div>
-    <p class="fb" id="fb">哪一個字放進空格才對？</p>
+    <button class="btn ghost" id="bSayW">🔊 聽聽看</button>
+    <p class="fb" id="fb">哪個字對？</p>
     <div class="opts">${opts.map(o=>`<button class="opt" data-c="${o}">${o}</button>`).join('')}</div>`;
+  $('bSayW').onclick=()=>speak(word);
   dlg.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
     if(b.dataset.c===it.c){b.classList.add('right');
       dlg.querySelectorAll('.opt').forEach(x=>x.disabled=true);
       $('fb').outerHTML='<div class="praise" id="fb"><span class="thumb">👍</span><span class="yay">好棒喔！</span></div>';
       speak('好棒喔');setTimeout(()=>stepSay(cp,word),1800)}
     else{b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');S.wrong++;updStats();
-      $('fb').className='fb bad';$('fb').textContent=`「${b.dataset.c}」不對喔，仔細比一比哪裡不一樣`}
+      $('fb').className='fb bad';$('fb').textContent=`「${b.dataset.c}」不對喔，再比一比`}
   });
   dlg.querySelector('.opt').focus();
 }
@@ -376,17 +455,17 @@ function stepSay(cp,word){
   const hl=[...word].map(ch=>ch===it.c?`<span class="hl">${ch}</span>`:ch).join('');
   dlg.innerHTML=`<div class="step" id="dStep">第三步．說一說</div>
     <div class="word">${hl}</div>
-    <p class="fb">把語詞唸一遍，「${it.c}」還可以造什麼詞？</p>
+    <p class="fb">唸一遍，還能造什麼詞？</p>
     <div class="words" id="more" hidden>${it.w.map(w=>`<span>${w}</span>`).join('')}</div>
     <div class="row" style="justify-content:center">
-      <button class="btn ghost" id="bHint">看看課本的詞</button>
+      <button class="btn ghost" id="bHint">課本的詞</button>
       <button class="btn" id="bGo">繼續前進</button>
     </div>`;
   $('bHint').onclick=()=>{$('more').hidden=false};
   $('bGo').onclick=()=>{cp.solved=true;closeQuiz();renderGoal();step(cp.x,cp.y)};
   $('bGo').focus();
 }
-function closeQuiz(){$('ov').hidden=true;try{speechSynthesis.cancel()}catch(e){}}
+function closeQuiz(){$('ov').hidden=true;stopParty();try{speechSynthesis.cancel()}catch(e){}}
 
 function win(){
   S.won=true;const t=fmt(Date.now()-S.t0);
@@ -394,9 +473,9 @@ function win(){
   $('dlg').innerHTML=`<div class="step" id="dStep">🎉 到家了 🎉</div>
     <div class="home"><button class="egg" id="egg" aria-label="摸摸小貓">🐱</button><span class="house">🏠</span></div>
     <div class="word" style="color:var(--good);font-size:120px">小貓回家了！</div>
-    <p class="eggmsg" id="eggMsg" aria-live="polite">🐾 摸摸小貓，看看會發生什麼事？</p>
+    <p class="eggmsg" id="eggMsg" aria-live="polite">🐾 摸摸小貓</p>
     <div class="words">${S.cps.map(c=>`<span>${c.it.c}</span>`).join('')}</div>
-    <p class="fb">用了 ${t}，走了 ${S.steps} 步，選錯 ${S.wrong} 次。</p>
+    <p class="fb">⭐ ${S.score} 分｜⏱ ${t}${S.hits?`｜👾 撞到 ${S.hits} 次`:''}${S.wrong?`｜選錯 ${S.wrong} 次`:''}</p>
     <div class="row" style="justify-content:center">
       <button class="btn ghost" id="bAgain">同一組再玩</button>
       <button class="btn" id="bNext">下一組</button>
@@ -433,6 +512,7 @@ function tone(f,t0,dur,type='triangle',vol=.18){
 }
 function fanfare(){[[523,0,.18],[659,.16,.18],[784,.32,.18],[1047,.48,.6]].forEach(([f,t,d])=>tone(f,t,d));
   [523,659,784].forEach(f=>tone(f,.48,.6,'sine',.08))}
+function bonk(){tone(330,0,.12,'square',.14);tone(165,.1,.3,'square',.14)}
 function meow(){
   const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain(),lp=a.createBiquadFilter(),t=a.currentTime;
   o.type='sawtooth';lp.type='lowpass';lp.frequency.value=1800;o.connect(lp);lp.connect(g);g.connect(a.destination);
@@ -441,12 +521,16 @@ function meow(){
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.06);g.gain.linearRampToValueAtTime(.12,t+.35);g.gain.exponentialRampToValueAtTime(.001,t+.6);
   o.start(t);o.stop(t+.65);
 }
-const party=$('party'),pctx=party.getContext('2d');let bits=[],raf=0;
+const party=$('party'),pctx=party.getContext('2d');let bits=[],raf=0,partyEnd=0;
+const PARTY_MS=2000,FADE_MS=500; // 彩帶只撒 2 秒，最後 0.5 秒淡出
+function stopParty(){bits=[];partyEnd=0;if(raf){cancelAnimationFrame(raf);raf=0}pctx.setTransform(1,0,0,1,0,0);pctx.clearRect(0,0,party.width,party.height)}
 function confetti(colors,emojis,n){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  partyEnd=performance.now()+PARTY_MS;
+  clearTimeout(confetti.tm);confetti.tm=setTimeout(stopParty,PARTY_MS+100); // 保險：畫面暫停時也會清掉
   for(let i=0;i<n;i++){
     const useEmoji=!colors.length||Math.random()<.25;
-    bits.push({x:Math.random()*1600,y:-40-Math.random()*500,vx:(Math.random()-.5)*3,vy:3+Math.random()*4,
+    bits.push({x:Math.random()*1600,y:-40-Math.random()*200,vx:(Math.random()-.5)*3,vy:5+Math.random()*5,
       r:Math.random()*6,vr:(Math.random()-.5)*.2,
       e:useEmoji?emojis[rnd(emojis.length)]:null,c:colors[rnd(colors.length||1)],s:useEmoji?44+Math.random()*30:14+Math.random()*12});
   }
@@ -455,7 +539,10 @@ function confetti(colors,emojis,n){
 function tick(){
   const s=S.k*(window.devicePixelRatio||1);
   party.width=Math.round(1600*s);party.height=Math.round(900*s);pctx.setTransform(s,0,0,s,0,0);
+  const left=partyEnd-performance.now();
+  if(left<=0)bits=[];
   bits=bits.filter(b=>b.y<960);
+  pctx.globalAlpha=Math.min(1,Math.max(0,left/FADE_MS));
   bits.forEach(b=>{b.x+=b.vx+Math.sin(b.y/60);b.y+=b.vy;b.r+=b.vr;
     pctx.save();pctx.translate(b.x,b.y);pctx.rotate(b.r);
     if(b.e){pctx.font=`${b.s}px sans-serif`;pctx.textAlign='center';pctx.textBaseline='middle';pctx.fillText(b.e,0,0)}
@@ -478,7 +565,7 @@ function showRef(){
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function updStats(){
   $('sDone').textContent=S.cps.filter(c=>c.solved).length+'/'+S.cps.length;
-  $('sWrong').textContent=S.wrong;$('sSteps').textContent=S.steps;
+  $('sWrong').textContent=S.wrong;$('sScore').textContent=S.score;
 }
 setInterval(()=>{if(S.t0&&!S.won)$('sTime').textContent=fmt(Date.now()-S.t0)},500);
 function renderGoal(){$('goal').innerHTML=S.cps.map(c=>`<span class="${c.solved?'ok':''}">${c.it.c}</span>`).join('')}
@@ -486,14 +573,15 @@ const names=[...G.map(g=>g.n),'全部混合'];
 function setGroup(g){S.group=g;$('groups').querySelectorAll('.chip').forEach((b,i)=>b.setAttribute('aria-pressed',i===g));newGame()}
 $('groups').innerHTML=names.map((n,i)=>`<button class="chip" aria-pressed="${i===0}">${n}</button>`).join('');
 $('groups').querySelectorAll('.chip').forEach((b,i)=>b.onclick=()=>setGroup(i));
-$('size').onchange=e=>{S.size=+e.target.value;newGame()};
+$('size').onchange=e=>{[S.cols,S.rows,S.nMon]=e.target.value.split(',').map(Number);newGame()};
+$('monOn').onchange=()=>{spawnMonsters();draw()};
 $('newMaze').onclick=newGame;
 $('showRef').onclick=showRef;
 
 window.addEventListener('resize',fit);
-try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw)}catch(e){}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>draw())}catch(e){}
 new MutationObserver(()=>S.walls&&draw()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-fit();newGame();
+fit();newGame();requestAnimationFrame(loop);
 (document.fonts?document.fonts.load('700 40px "LXGW WenKai TC"','梢悄稍銷消捎協荔脅勞榮營律津筆建諸賭堵睹終起').then(()=>document.fonts.ready):Promise.resolve()).then(()=>draw()).catch(()=>{});
 </script>
 </body>
