@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0}</style>
+<title>讀圈畫算查</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700&display=swap">
+<style>
+/* Layout: chalkboard header with the five-step chant, then one classroom stepper card that reveals each step on the selected problem */
+:root {
+  --bg: #f4f7f5; --paper: #ffffff; --ink: #1e2a28; --muted: #5f6f69; --line: #d6e0db;
+  --board: #2d4a3e; --chalk: #f2c14e; --onboard: #ffffff;
+  --a: #2f6fd6; --b: #0f8a72; --q: #d9520b; --qbg: #fff1e6; --okbg: #e3f4ee; --tint: #eef4f0;
+  --display: "Huninn", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111815; --paper: #18221e; --ink: #e6efea; --muted: #9db0a8; --line: #2e3d37;
+  --board: #22382f; --chalk: #f2c14e; --onboard: #f4f7f5;
+  --a: #7aa8ff; --b: #4fd1b0; --q: #ff9f5a; --qbg: #3a2416; --okbg: #163329; --tint: #1f2c27; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111815; --paper: #18221e; --ink: #e6efea; --muted: #9db0a8; --line: #2e3d37;
+  --board: #22382f; --chalk: #f2c14e; --onboard: #f4f7f5;
+  --a: #7aa8ff; --b: #4fd1b0; --q: #ff9f5a; --qbg: #3a2416; --okbg: #163329; --tint: #1f2c27; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.7; }
+.wrap { max-width: 920px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 56px; display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.3; text-wrap: balance; }
+p { margin: 0; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--chalk); outline-offset: 2px; }
+
+.board { background: var(--board); color: var(--onboard); border-radius: 18px; padding: 22px 24px; display: grid; gap: 14px; }
+.board h1 { font-size: 2rem; }
+.chant { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.chant .c { width: 54px; height: 54px; border-radius: 50%; background: var(--chalk); color: #2d4a3e; font-family: var(--display); font-size: 1.7rem; display: grid; place-items: center; }
+.chant .c.key { background: var(--q); color: #fff; }
+.chant .tail { font-family: var(--display); font-size: 1.6rem; color: var(--chalk); }
+.board .sub { opacity: .85; font-size: 1rem; }
+
+.picker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.picker span { color: var(--muted); font-size: .95rem; margin-right: 4px; }
+.chip { border: 2px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 4px 14px; font-size: 1.05rem; }
+.chip[aria-pressed="true"] { background: var(--board); border-color: var(--board); color: var(--chalk); }
+
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; display: grid; gap: 18px; }
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.step { border: 2px solid var(--line); background: var(--paper); color: var(--muted); border-radius: 14px; padding: 8px 4px; display: grid; justify-items: center; gap: 2px; }
+.step .c { font-family: var(--display); font-size: 1.6rem; line-height: 1.2; }
+.step .l { font-size: .85rem; }
+.step.done { background: var(--tint); color: var(--ink); }
+.step.now { background: var(--board); border-color: var(--board); color: var(--chalk); }
+
+.problem { background: var(--tint); border-radius: 14px; padding: 16px 18px; font-size: 1.3rem; line-height: 1.9; display: flex; gap: 12px; align-items: flex-start; }
+.problem .no { font-family: var(--display); color: var(--a); font-size: 1.5rem; line-height: 1.6; }
+.problem p { min-width: 0; }
+.problem b.n { font-weight: 400; border: 2.5px solid transparent; border-radius: 999px; padding: 0 5px; transition: border-color .3s, color .3s; }
+.problem.marked b.n { border-color: var(--a); color: var(--a); font-weight: 700; }
+.problem .ask { text-decoration: underline wavy transparent; text-underline-offset: 6px; transition: text-decoration-color .3s; }
+.problem.marked .ask { text-decoration-color: var(--q); font-weight: 700; }
+
+.prompt { display: flex; gap: 12px; align-items: flex-start; }
+.prompt .c { flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--board); color: var(--chalk); font-family: var(--display); font-size: 1.4rem; display: grid; place-items: center; }
+.prompt .t { min-width: 0; display: grid; gap: 4px; }
+.prompt .t strong { font-family: var(--display); font-weight: 400; font-size: 1.35rem; }
+
+.nl { margin: 0; overflow-x: auto; }
+.nl svg { width: 100%; min-width: 460px; height: auto; display: block; }
+svg text { font-family: var(--body); fill: var(--ink); }
+svg .axis { stroke: var(--muted); stroke-width: 2; fill: none; }
+svg .tick { stroke: var(--ink); stroke-width: 2; }
+svg .seg { stroke-width: 9; fill: none; }
+svg .seg.a { stroke: var(--a); } svg .seg.b { stroke: var(--b); } svg .seg.q { stroke: var(--q); }
+svg .br { fill: none; stroke-width: 2; }
+svg .br.a { stroke: var(--a); } svg .br.b { stroke: var(--b); } svg .br.q { stroke: var(--q); } svg .br.k { stroke: var(--ink); }
+svg .guide { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 5; }
+svg .tl { font-size: 15px; fill: var(--muted); }
+svg .bn { font-size: 15px; fill: var(--muted); }
+svg .bv { font-size: 17px; font-weight: 700; }
+svg .rl { font-size: 19px; font-weight: 700; }
+svg text.a { fill: var(--a); } svg text.b { fill: var(--b); } svg text.k { fill: var(--ink); }
+svg text.tq { fill: var(--q); font-weight: 700; font-size: 19px; }
+
+.choice { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.big { border: 2px solid var(--board); background: var(--paper); color: var(--ink); border-radius: 14px; padding: 8px 22px; font-family: var(--display); font-size: 1.35rem; }
+.big:hover { background: var(--tint); }
+.big[aria-pressed="true"] { background: var(--chalk); color: #2d4a3e; border-color: var(--chalk); }
+.big.primary { background: var(--board); color: var(--chalk); }
+.big.ghost { border-color: var(--line); color: var(--muted); font-size: 1.05rem; padding: 8px 16px; }
+.big:disabled { opacity: .4; cursor: default; }
+.fb { border-radius: 12px; padding: 10px 14px; font-size: 1.05rem; }
+.fb.ok { background: var(--okbg); }
+.fb.no { background: var(--qbg); }
+.eq { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.eq input { width: 5.2em; font: inherit; font-size: 1.8rem; text-align: center; border: 3px dashed var(--q); border-radius: 12px; padding: 2px 6px; background: var(--paper); color: var(--ink); }
+.eq .ans { color: var(--q); }
+.sent { font-size: 1.35rem; font-weight: 700; }
+.checks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.checks div { background: var(--tint); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.checks b { display: block; }
+.nav { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.speak[hidden] { display: none; }
+
+.cue { display: grid; gap: 6px; color: var(--muted); font-size: .95rem; }
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .board h1 { font-size: 1.6rem; }
+  .chant .c { width: 44px; height: 44px; font-size: 1.4rem; }
+  .problem { font-size: 1.1rem; }
+  .checks { grid-template-columns: 1fr; }
+  .step .l { display: none; }
+  .eq { font-size: 1.5rem; }
+  .nl svg { min-width: 360px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+  <header class="board">
+    <h1>應用題解題五步驟</h1>
+    <div class="chant" aria-label="口訣：讀圈畫算查，解題頂呱呱">
+      <span class="c">讀</span><span class="c">圈</span><span class="c key">畫</span><span class="c">算</span><span class="c">查</span>
+      <span class="tail">解題頂呱呱！</span>
+    </div>
+    <p class="sub">讀一讀、圈一圈、畫一畫、算一算、查一查</p>
+  </header>
+
+  <nav class="picker" id="picker" aria-label="選題目"><span>選題目</span></nav>
+
+  <section class="card" aria-live="polite">
+    <div class="steps" id="steps"></div>
+    <div class="problem" id="problem"><span class="no" id="pno"></span><p id="ptext"></p></div>
+    <div id="panel" style="display:grid;gap:16px"></div>
+    <div class="nav">
+      <button class="big ghost" id="prev">← 上一步</button>
+      <button class="big primary" id="next">下一步 →</button>
+    </div>
+  </section>
+
+  <div class="cue">
+    <p>使用方式：老師投影，按「下一步」一步一步帶。第3步讓學生選加或減，第4步讓學生輸入答案。</p>
+  </div>
+</main>
+
+<script>
+const P = [{"no": "⑴", "pre": "小宇和郭老師假日去民雄的中正大學騎腳踏車，繞校園一圈要騎<b class=\"n\">5000</b>公尺。騎了一段後，郭老師說：「還剩<b class=\"n\">2578</b>公尺就騎完一圈了！」", "ask": "他們已經騎了幾公尺？", "askPlain": "他們已經騎了幾公尺？", "plain": "小宇和郭老師假日去民雄的中正大學騎腳踏車，繞校園一圈要騎5000公尺。騎了一段後，郭老師說：「還剩2578公尺就騎完一圈了！」他們已經騎了幾公尺？", "svg": "<svg viewBox=\"0 0 640 184\" role=\"img\"><line x1=\"36\" y1=\"88\" x2=\"604\" y2=\"88\" class=\"axis\"/><line x1=\"50\" y1=\"88\" x2=\"311.576\" y2=\"88\" class=\"seg q\"/><line x1=\"311.576\" y1=\"88\" x2=\"590\" y2=\"88\" class=\"seg b\"/><line x1=\"50\" y1=\"76\" x2=\"50\" y2=\"100\" class=\"tick\"/><line x1=\"311.576\" y1=\"76\" x2=\"311.576\" y2=\"100\" class=\"tick\"/><line x1=\"590\" y1=\"76\" x2=\"590\" y2=\"100\" class=\"tick\"/><text x=\"50.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"311.6\" y=\"120.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><text x=\"590.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl \">5000</text><path d=\"M54.0,68 v-12 H307.6 v12\" class=\"br q\"/><text x=\"180.8\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">已經騎</text><text x=\"180.8\" y=\"49.0\" text-anchor=\"middle\" class=\"bv tq\">？</text><path d=\"M315.6,68 v-12 H586.0 v12\" class=\"br b\"/><text x=\"450.8\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">還剩</text><text x=\"450.8\" y=\"49.0\" text-anchor=\"middle\" class=\"bv b\">2578公尺</text><path d=\"M50,132 v12 H590 v-12\" class=\"br k\"/><text x=\"320.0\" y=\"172.0\" text-anchor=\"middle\" class=\"bv k\">一圈（全部）：5000公尺</text></svg>", "think": "一圈5000公尺是「全部」。要找的是前面那一段，所以用全部減掉知道的那一段。", "sent": "他們已經騎了2422公尺。", "chk": "2422 + 2578 = 5000 ✔", "a": 5000, "op": "−", "b": 2578, "ans": 2422, "unit": "公尺"}, {"no": "⑵", "pre": "小宇有一些零用錢，去書店買了一盒寶可夢卡牌，花了<b class=\"n\">622</b>元，還剩下<b class=\"n\">2378</b>元。", "ask": "小宇原來有幾元？", "askPlain": "小宇原來有幾元？", "plain": "小宇有一些零用錢，去書店買了一盒寶可夢卡牌，花了622元，還剩下2378元。小宇原來有幾元？", "svg": "<svg viewBox=\"0 0 640 184\" role=\"img\"><line x1=\"36\" y1=\"88\" x2=\"604\" y2=\"88\" class=\"axis\"/><line x1=\"50\" y1=\"88\" x2=\"168.8\" y2=\"88\" class=\"seg a\"/><line x1=\"168.8\" y1=\"88\" x2=\"590\" y2=\"88\" class=\"seg b\"/><line x1=\"50\" y1=\"76\" x2=\"50\" y2=\"100\" class=\"tick\"/><line x1=\"168.8\" y1=\"76\" x2=\"168.8\" y2=\"100\" class=\"tick\"/><line x1=\"590\" y1=\"76\" x2=\"590\" y2=\"100\" class=\"tick\"/><text x=\"50.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"168.8\" y=\"120.0\" text-anchor=\"middle\" class=\"tl \">622</text><text x=\"590.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><path d=\"M54.0,68 v-12 H164.8 v12\" class=\"br a\"/><text x=\"109.4\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">花掉</text><text x=\"109.4\" y=\"49.0\" text-anchor=\"middle\" class=\"bv a\">622元</text><path d=\"M172.8,68 v-12 H586.0 v12\" class=\"br b\"/><text x=\"379.4\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">剩下</text><text x=\"379.4\" y=\"49.0\" text-anchor=\"middle\" class=\"bv b\">2378元</text><path d=\"M50,132 v12 H590 v-12\" class=\"br q\"/><text x=\"320.0\" y=\"172.0\" text-anchor=\"middle\" class=\"bv tq\">原來（全部）：？</text></svg>", "think": "花掉的錢和剩下的錢合起來，就是原來的錢。要找的是全部，用加的。", "sent": "小宇原來有3000元。", "chk": "3000 − 622 = 2378 ✔", "a": 622, "op": "+", "b": 2378, "ans": 3000, "unit": "元"}, {"no": "⑶", "pre": "小宇今年在小豬撲滿裡存了<b class=\"n\">4178</b>元，比去年少存<b class=\"n\">925</b>元。", "ask": "小宇去年存了幾元？", "askPlain": "小宇去年存了幾元？", "plain": "小宇今年在小豬撲滿裡存了4178元，比去年少存925元。小宇去年存了幾元？", "svg": "<svg viewBox=\"0 0 640 232\" role=\"img\"><text x=\"24.0\" y=\"77.0\" text-anchor=\"start\" class=\"rl\">今年</text><line x1=\"110\" y1=\"70\" x2=\"486.6\" y2=\"70\" class=\"seg a\"/><line x1=\"110.0\" y1=\"58\" x2=\"110.0\" y2=\"82\" class=\"tick\"/><line x1=\"486.6\" y1=\"58\" x2=\"486.6\" y2=\"82\" class=\"tick\"/><text x=\"110.0\" y=\"102.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"486.6\" y=\"102.0\" text-anchor=\"middle\" class=\"tl \">4178元</text><text x=\"24.0\" y=\"193.0\" text-anchor=\"start\" class=\"rl\">去年</text><line x1=\"110\" y1=\"186\" x2=\"570.0\" y2=\"186\" class=\"seg q\"/><line x1=\"110.0\" y1=\"174\" x2=\"110.0\" y2=\"198\" class=\"tick\"/><line x1=\"570.0\" y1=\"174\" x2=\"570.0\" y2=\"198\" class=\"tick\"/><text x=\"110.0\" y=\"218.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"570.0\" y=\"218.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><line x1=\"486.6\" y1=\"112\" x2=\"486.6\" y2=\"198\" class=\"guide\"/><line x1=\"486.6\" y1=\"186\" x2=\"570\" y2=\"186\" class=\"seg b\"/><path d=\"M489.6,168 v-10 H567 v10\" class=\"br b\"/><text x=\"528.3\" y=\"150.0\" text-anchor=\"middle\" class=\"bv b\">去年多存925元</text></svg>", "think": "今年比去年「少」925元，反過來說，就是去年比今年「多」925元。去年是比較長的那條，用加的。", "sent": "小宇去年存了5103元。", "chk": "5103 − 925 = 4178 ✔", "a": 4178, "op": "+", "b": 925, "ans": 5103, "unit": "元"}, {"no": "⑷", "pre": "郭老師要幫班上辦水果派對。一箱櫻桃賣<b class=\"n\">1290</b>元，一箱蘋果比一箱櫻桃便宜<b class=\"n\">490</b>元。", "ask": "一箱蘋果賣幾元？", "askPlain": "一箱蘋果賣幾元？", "plain": "郭老師要幫班上辦水果派對。一箱櫻桃賣1290元，一箱蘋果比一箱櫻桃便宜490元。一箱蘋果賣幾元？", "svg": "<svg viewBox=\"0 0 640 232\" role=\"img\"><text x=\"24.0\" y=\"77.0\" text-anchor=\"start\" class=\"rl\">櫻桃</text><line x1=\"110\" y1=\"70\" x2=\"570.0\" y2=\"70\" class=\"seg a\"/><line x1=\"110.0\" y1=\"58\" x2=\"110.0\" y2=\"82\" class=\"tick\"/><line x1=\"570.0\" y1=\"58\" x2=\"570.0\" y2=\"82\" class=\"tick\"/><text x=\"110.0\" y=\"102.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"570.0\" y=\"102.0\" text-anchor=\"middle\" class=\"tl \">1290元</text><text x=\"24.0\" y=\"193.0\" text-anchor=\"start\" class=\"rl\">蘋果</text><line x1=\"110\" y1=\"186\" x2=\"395.3\" y2=\"186\" class=\"seg q\"/><line x1=\"110.0\" y1=\"174\" x2=\"110.0\" y2=\"198\" class=\"tick\"/><line x1=\"395.3\" y1=\"174\" x2=\"395.3\" y2=\"198\" class=\"tick\"/><text x=\"110.0\" y=\"218.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"395.3\" y=\"218.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><line x1=\"395.3\" y1=\"54\" x2=\"395.3\" y2=\"198\" class=\"guide\"/><line x1=\"395.3\" y1=\"70\" x2=\"570\" y2=\"70\" class=\"seg b\"/><path d=\"M398.3,52 v-10 H567 v10\" class=\"br b\"/><text x=\"482.6\" y=\"34.0\" text-anchor=\"middle\" class=\"bv b\">便宜490元</text></svg>", "think": "蘋果比櫻桃「便宜」，蘋果是比較短的那條。從櫻桃的價錢拿掉490元，用減的。", "sent": "一箱蘋果賣800元。", "chk": "800 + 490 = 1290 ✔", "a": 1290, "op": "−", "b": 490, "ans": 800, "unit": "元"}, {"no": "⑸", "pre": "學校舉辦寶特瓶回收比賽，郭老師的班上昨天收集了一些寶特瓶，今天又收集了<b class=\"n\">2750</b>瓶，現在一共有<b class=\"n\">8200</b>瓶。", "ask": "昨天收集了幾瓶？", "askPlain": "昨天收集了幾瓶？", "plain": "學校舉辦寶特瓶回收比賽，郭老師的班上昨天收集了一些寶特瓶，今天又收集了2750瓶，現在一共有8200瓶。昨天收集了幾瓶？", "svg": "<svg viewBox=\"0 0 640 184\" role=\"img\"><line x1=\"36\" y1=\"88\" x2=\"604\" y2=\"88\" class=\"axis\"/><line x1=\"50\" y1=\"88\" x2=\"408.9024390243903\" y2=\"88\" class=\"seg q\"/><line x1=\"408.9024390243903\" y1=\"88\" x2=\"590\" y2=\"88\" class=\"seg b\"/><line x1=\"50\" y1=\"76\" x2=\"50\" y2=\"100\" class=\"tick\"/><line x1=\"408.9024390243903\" y1=\"76\" x2=\"408.9024390243903\" y2=\"100\" class=\"tick\"/><line x1=\"590\" y1=\"76\" x2=\"590\" y2=\"100\" class=\"tick\"/><text x=\"50.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"408.9\" y=\"120.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><text x=\"590.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl \">8200</text><path d=\"M54.0,68 v-12 H404.9 v12\" class=\"br q\"/><text x=\"229.5\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">昨天</text><text x=\"229.5\" y=\"49.0\" text-anchor=\"middle\" class=\"bv tq\">？</text><path d=\"M412.9,68 v-12 H586.0 v12\" class=\"br b\"/><text x=\"499.5\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">今天</text><text x=\"499.5\" y=\"49.0\" text-anchor=\"middle\" class=\"bv b\">2750瓶</text><path d=\"M50,132 v12 H590 v-12\" class=\"br k\"/><text x=\"320.0\" y=\"172.0\" text-anchor=\"middle\" class=\"bv k\">一共（全部）：8200瓶</text></svg>", "think": "「一共8200瓶」是全部。昨天收的是其中一段，用全部減掉今天收的。", "sent": "昨天收集了5450瓶。", "chk": "5450 + 2750 = 8200 ✔", "a": 8200, "op": "−", "b": 2750, "ans": 5450, "unit": "瓶"}, {"no": "⑹", "pre": "小宇有一些錢，買了一件喜歡的籃球球衣，花了<b class=\"n\">399</b>元，還剩下<b class=\"n\">1699</b>元。", "ask": "小宇原來有幾元？", "askPlain": "小宇原來有幾元？", "plain": "小宇有一些錢，買了一件喜歡的籃球球衣，花了399元，還剩下1699元。小宇原來有幾元？", "svg": "<svg viewBox=\"0 0 640 184\" role=\"img\"><line x1=\"36\" y1=\"88\" x2=\"604\" y2=\"88\" class=\"axis\"/><line x1=\"50\" y1=\"88\" x2=\"168.8\" y2=\"88\" class=\"seg a\"/><line x1=\"168.8\" y1=\"88\" x2=\"590\" y2=\"88\" class=\"seg b\"/><line x1=\"50\" y1=\"76\" x2=\"50\" y2=\"100\" class=\"tick\"/><line x1=\"168.8\" y1=\"76\" x2=\"168.8\" y2=\"100\" class=\"tick\"/><line x1=\"590\" y1=\"76\" x2=\"590\" y2=\"100\" class=\"tick\"/><text x=\"50.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"168.8\" y=\"120.0\" text-anchor=\"middle\" class=\"tl \">399</text><text x=\"590.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><path d=\"M54.0,68 v-12 H164.8 v12\" class=\"br a\"/><text x=\"109.4\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">花掉</text><text x=\"109.4\" y=\"49.0\" text-anchor=\"middle\" class=\"bv a\">399元</text><path d=\"M172.8,68 v-12 H586.0 v12\" class=\"br b\"/><text x=\"379.4\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">剩下</text><text x=\"379.4\" y=\"49.0\" text-anchor=\"middle\" class=\"bv b\">1699元</text><path d=\"M50,132 v12 H590 v-12\" class=\"br q\"/><text x=\"320.0\" y=\"172.0\" text-anchor=\"middle\" class=\"bv tq\">原來（全部）：？</text></svg>", "think": "花掉的和剩下的合起來是原來的錢。要找全部，用加的。", "sent": "小宇原來有2098元。", "chk": "2098 − 399 = 1699 ✔", "a": 399, "op": "+", "b": 1699, "ans": 2098, "unit": "元"}, {"no": "⑺", "pre": "郭老師有一些班費，買了集點卡要用的獎勵文具，花了<b class=\"n\">321</b>元，還剩下<b class=\"n\">3679</b>元。", "ask": "郭老師原來有幾元？", "askPlain": "郭老師原來有幾元？", "plain": "郭老師有一些班費，買了集點卡要用的獎勵文具，花了321元，還剩下3679元。郭老師原來有幾元？", "svg": "<svg viewBox=\"0 0 640 184\" role=\"img\"><line x1=\"36\" y1=\"88\" x2=\"604\" y2=\"88\" class=\"axis\"/><line x1=\"50\" y1=\"88\" x2=\"168.8\" y2=\"88\" class=\"seg a\"/><line x1=\"168.8\" y1=\"88\" x2=\"590\" y2=\"88\" class=\"seg b\"/><line x1=\"50\" y1=\"76\" x2=\"50\" y2=\"100\" class=\"tick\"/><line x1=\"168.8\" y1=\"76\" x2=\"168.8\" y2=\"100\" class=\"tick\"/><line x1=\"590\" y1=\"76\" x2=\"590\" y2=\"100\" class=\"tick\"/><text x=\"50.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"168.8\" y=\"120.0\" text-anchor=\"middle\" class=\"tl \">321</text><text x=\"590.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><path d=\"M54.0,68 v-12 H164.8 v12\" class=\"br a\"/><text x=\"109.4\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">花掉</text><text x=\"109.4\" y=\"49.0\" text-anchor=\"middle\" class=\"bv a\">321元</text><path d=\"M172.8,68 v-12 H586.0 v12\" class=\"br b\"/><text x=\"379.4\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">剩下</text><text x=\"379.4\" y=\"49.0\" text-anchor=\"middle\" class=\"bv b\">3679元</text><path d=\"M50,132 v12 H590 v-12\" class=\"br q\"/><text x=\"320.0\" y=\"172.0\" text-anchor=\"middle\" class=\"bv tq\">原來（全部）：？</text></svg>", "think": "花掉的和剩下的合起來是原來的班費。要找全部，用加的。", "sent": "郭老師原來有4000元。", "chk": "4000 − 321 = 3679 ✔", "a": 321, "op": "+", "b": 3679, "ans": 4000, "unit": "元"}, {"no": "⑻", "pre": "學校園遊會快到了，郭老師說：「福利社只要再買<b class=\"n\">1850</b>瓶彈珠汽水，就會有<b class=\"n\">6100</b>瓶。」", "ask": "福利社原本有幾瓶彈珠汽水？", "askPlain": "福利社原本有幾瓶彈珠汽水？", "plain": "學校園遊會快到了，郭老師說：「福利社只要再買1850瓶彈珠汽水，就會有6100瓶。」福利社原本有幾瓶彈珠汽水？", "svg": "<svg viewBox=\"0 0 640 184\" role=\"img\"><line x1=\"36\" y1=\"88\" x2=\"604\" y2=\"88\" class=\"axis\"/><line x1=\"50\" y1=\"88\" x2=\"426.2295081967213\" y2=\"88\" class=\"seg q\"/><line x1=\"426.2295081967213\" y1=\"88\" x2=\"590\" y2=\"88\" class=\"seg b\"/><line x1=\"50\" y1=\"76\" x2=\"50\" y2=\"100\" class=\"tick\"/><line x1=\"426.2295081967213\" y1=\"76\" x2=\"426.2295081967213\" y2=\"100\" class=\"tick\"/><line x1=\"590\" y1=\"76\" x2=\"590\" y2=\"100\" class=\"tick\"/><text x=\"50.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl\">0</text><text x=\"426.2\" y=\"120.0\" text-anchor=\"middle\" class=\"tl tq\">？</text><text x=\"590.0\" y=\"120.0\" text-anchor=\"middle\" class=\"tl \">6100</text><path d=\"M54.0,68 v-12 H422.2 v12\" class=\"br q\"/><text x=\"238.1\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">原本</text><text x=\"238.1\" y=\"49.0\" text-anchor=\"middle\" class=\"bv tq\">？</text><path d=\"M430.2,68 v-12 H586.0 v12\" class=\"br b\"/><text x=\"508.1\" y=\"30.0\" text-anchor=\"middle\" class=\"bn\">再買</text><text x=\"508.1\" y=\"49.0\" text-anchor=\"middle\" class=\"bv b\">1850瓶</text><path d=\"M50,132 v12 H590 v-12\" class=\"br k\"/><text x=\"320.0\" y=\"172.0\" text-anchor=\"middle\" class=\"bv k\">買完後（全部）：6100瓶</text></svg>", "think": "「就會有6100瓶」是買完後的全部。原本的是其中一段，用全部減掉再買的。", "sent": "福利社原本有4250瓶彈珠汽水。", "chk": "4250 + 1850 = 6100 ✔", "a": 6100, "op": "−", "b": 1850, "ans": 4250, "unit": "瓶"}];
+const STEPS = [
+  { c: "讀", l: "讀題目" }, { c: "圈", l: "圈重點" }, { c: "畫", l: "畫數線" }, { c: "算", l: "計算" }, { c: "查", l: "檢查" },
+];
+let cur = 1, step = 0, opPick = null, answered = null, shown = false;
+
+const $ = (id) => document.getElementById(id);
+const canSpeak = (() => { try { return "speechSynthesis" in window; } catch (e) { return false; } })();
+
+function speak(text) {
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-TW"; u.rate = 0.8;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+function pick(i) { cur = i; step = 0; opPick = null; answered = null; shown = false; render(); }
+function go(s) { step = Math.max(0, Math.min(4, s)); render(); }
+
+function renderPicker() {
+  const nav = $("picker");
+  nav.querySelectorAll("button").forEach((b) => b.remove());
+  P.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = p.no; b.setAttribute("aria-pressed", i === cur);
+    b.onclick = () => pick(i);
+    nav.appendChild(b);
+  });
+}
+
+function render() {
+  const p = P[cur];
+  renderPicker();
+  $("steps").innerHTML = STEPS.map((s, i) =>
+    `<button class="step ${i === step ? "now" : i < step ? "done" : ""}" data-i="${i}" aria-current="${i === step}"><span class="c">${s.c}</span><span class="l">${i + 1}. ${s.l}</span></button>`).join("");
+  $("steps").querySelectorAll("button").forEach((b) => (b.onclick = () => go(+b.dataset.i)));
+  $("pno").textContent = p.no;
+  $("ptext").innerHTML = p.pre + `<span class="ask">${p.ask}</span>`;
+  $("problem").classList.toggle("marked", step >= 1);
+
+  const parts = [];
+  const prompt = (c, title, body) => `<div class="prompt"><span class="c">${c}</span><div class="t"><strong>${title}</strong>${body ? `<p>${body}</p>` : ""}</div></div>`;
+
+  if (step === 0) {
+    parts.push(prompt("讀", "慢慢唸兩次", "第一次：知道發生什麼事。第二次：聽清楚每個數字。"));
+    if (canSpeak) parts.push(`<div class="choice"><button class="big" id="say">🔊 唸給我聽</button></div>`);
+  }
+  if (step === 1) parts.push(prompt("圈", "圈數字，畫出題目問什麼", `題目問：<b>${p.askPlain}</b>`));
+  if (step >= 2) {
+    if (step === 2) parts.push(prompt("畫", "畫數線：知道的放上去，不知道的寫「？」", "找出最長的那一段，看看「？」在哪裡。"));
+    parts.push(`<figure class="nl">${p.svg}</figure>`);
+  }
+  if (step === 2) {
+    parts.push(`<div class="choice"><span>要用加還是減？</span>
+      <button class="big" data-op="+" aria-pressed="${opPick === "+"}">加 ＋</button><button class="big" data-op="−" aria-pressed="${opPick === "−"}">減 −</button></div>`);
+    if (opPick) {
+      const ok = opPick === p.op;
+      parts.push(ok ? `<p class="fb ok">答對了！${p.think}</p>`
+        : `<p class="fb no">${p.no === "⑶" || p.no === "⑷" ? "再想一想：要找的是比較長的那條，還是比較短的那條？" : "再想一想：「？」在最長的那一段（全部），還是其中一段？"}</p>`);
+    }
+  }
+  if (step === 3) {
+    parts.push(prompt("算", "寫算式，算出答案，再寫答句", ""));
+    parts.push(`<div class="eq"><span>${p.a}</span><span>${p.op}</span><span>${p.b}</span><span>=</span>
+      <input id="ans" inputmode="numeric" aria-label="答案" value="${answered ?? ""}"><span style="font-size:.6em">${p.unit}</span></div>`);
+    parts.push(`<div class="choice"><button class="big primary" id="check">對答案</button><button class="big ghost" id="show">看答案</button></div>`);
+    if (answered !== null || shown) {
+      const ok = shown || Number(answered) === p.ans;
+      parts.push(ok ? `<p class="fb ok">${shown && Number(answered) !== p.ans ? `答案是 ${p.ans}。` : "答對了！"}<br><span class="sent">答：${p.sent.replace(/。$/, "")}。</span></p>`
+        : `<p class="fb no">還不對，再算一次看看。直式要對齊個位喔！</p>`);
+    }
+  }
+  if (step === 4) {
+    parts.push(prompt("查", "把答案放回題目，問自己三個問題", ""));
+    parts.push(`<div class="checks">
+      <div><b>算回去對嗎？</b>${p.chk}</div>
+      <div><b>合理嗎？</b>全部要比每一段都大，長的要比短的大。</div>
+      <div><b>有單位和答句嗎？</b>答：${p.sent.replace(/。$/, "")}。</div></div>`);
+  }
+  $("panel").innerHTML = parts.join("");
+
+  const say = $("say"); if (say) say.onclick = () => speak(p.plain);
+  $("panel").querySelectorAll("[data-op]").forEach((b) => (b.onclick = () => { opPick = b.dataset.op; render(); }));
+  const ck = $("check");
+  if (ck) {
+    const inp = $("ans");
+    const submit = () => { answered = inp.value.trim() === "" ? null : inp.value.replace(/[^\d]/g, ""); render(); };
+    ck.onclick = submit;
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+    $("show").onclick = () => { shown = true; render(); };
+  }
+  $("prev").disabled = step === 0;
+  $("next").textContent = step === 4 ? (cur < P.length - 1 ? "下一題 →" : "回到第一題") : "下一步 →";
+}
+
+$("prev").onclick = () => go(step - 1);
+$("next").onclick = () => (step === 4 ? pick((cur + 1) % P.length) : go(step + 1));
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight") $("next").click();
+  if (e.key === "ArrowLeft" && step > 0) go(step - 1);
+});
+render();
+</script>
